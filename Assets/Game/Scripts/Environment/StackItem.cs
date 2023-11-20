@@ -6,6 +6,12 @@ using UnityEngine;
 
 public class StackItem : MonoBehaviour
 {
+    private const string PLAYER = "Player";
+    private const string COLLECTABLE = "Collectable";
+    private const string OBSTACLE = "Obstacle";
+    private const string GATE = "Gate";
+    private const string ATM = "Atm";
+    private const string ATM_LINE = "AtmLine";
     [SerializeField] private new BoxCollider collider;
     [SerializeField] private List<MeshRenderer> visuals;
     [System.NonSerialized] public bool isCollected = false, inStack = false, enteredAtmLine = false;
@@ -20,7 +26,7 @@ public class StackItem : MonoBehaviour
     {
         if (followTarget == null || !inStack) return;
 
-        if(!enteredAtmLine)
+        if (!enteredAtmLine)
         {
             Follow();
         }
@@ -38,7 +44,7 @@ public class StackItem : MonoBehaviour
         transform.position = targetPos;
     }
 
-    public void SetTarget(Transform followTarget,float deltaPosZ)
+    public void SetTarget(Transform followTarget, float deltaPosZ)
     {
         this.followTarget = followTarget;
         this.deltaPosZ = deltaPosZ;
@@ -57,7 +63,7 @@ public class StackItem : MonoBehaviour
         transform.DOMove(position, 0.25f).SetEase(Ease.OutBounce);
         collider.enabled = false;
 
-        yield return new WaitForSeconds(0.2501f);
+        yield return new WaitForSeconds(0.25f);
 
         isCollected = false;
         collider.enabled = true;
@@ -65,44 +71,44 @@ public class StackItem : MonoBehaviour
 
     private void Improve()
     {
-        if(level != 2)
+        if (level != 2)
         {
             visuals[level].enabled = false;
             level++;
             visuals[level].enabled = true;
         }
-        
+
     }
 
     private void GoToLastAtm()
-    {        
-        transform.Translate(-transform.right * 5f * Time.deltaTime);
+    {
+        transform.Translate(5f * Time.deltaTime * -transform.right);
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        if(!isCollected && !inStack && !enteredAtmLine &&
-            ((other.transform.parent != null && other.transform.parent.CompareTag("Player")) || other.CompareTag("Collectable")))
-        {           
+        if (!isCollected && !inStack && !enteredAtmLine &&
+            ((other.transform.parent != null && other.transform.parent.CompareTag(PLAYER)) || other.CompareTag(COLLECTABLE)))
+        {
             StackManager.Instance.AddItem(this);
         }
 
-        if(inStack && isCollected)
+        if (inStack && isCollected)
         {
-            if (other.CompareTag("Obstacle"))
+            if (other.CompareTag(OBSTACLE))
             {
                 StackManager.Instance.DestroyItem(this);
             }
 
-            else if (other.CompareTag("Gate"))
+            else if (other.CompareTag(GATE))
             {
                 Improve();
                 StackManager.Instance.UpdateStackValue();
             }
 
-            else if (other.CompareTag("Atm"))
+            else if (other.CompareTag(ATM))
             {
-                if(enteredAtmLine)
+                if (enteredAtmLine)
                 {
                     Destroy(gameObject);
                     return;
@@ -111,12 +117,12 @@ public class StackItem : MonoBehaviour
                 StackManager.Instance.DepositItem(this);
             }
 
-            else if (other.CompareTag("AtmLine"))
+            else if (other.CompareTag(ATM_LINE))
             {
-                enteredAtmLine = true;             
+                enteredAtmLine = true;
             }
         }
 
-        
+
     }
 }
